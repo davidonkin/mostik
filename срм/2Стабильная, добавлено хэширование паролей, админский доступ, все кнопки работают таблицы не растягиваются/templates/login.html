@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .login-title {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1 class="login-title">Вход</h1>
+        
+        <!-- Alert for error messages -->
+        <div id="error-message" class="alert alert-danger d-none" role="alert"></div>
+        
+        <form id="login-form" method="POST">
+            <div class="form-group">
+                <input type="text" class="form-control" name="phone" required placeholder="Телефон (+7...)">
+            </div>
+            <div class="form-group">
+                <input type="password" class="form-control" name="password" required placeholder="Пароль">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Войти</button>
+        </form>
+        <div class="text-center mt-3">
+            <a href="{{ url_for('register') }}">Нет аккаунта? Зарегистрироваться</a>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#login-form').submit(function(event) {
+                event.preventDefault(); // Останавливаем стандартное поведение формы
+
+                // Получаем данные из формы
+                const phone = $('input[name="phone"]').val();
+                const password = $('input[name="password"]').val();
+
+                // AJAX-запрос для отправки данных
+                $.post('{{ url_for("login") }}', { phone: phone, password: password })
+                    .done(function(data) {
+                        // Если вход успешный, перенаправляем пользователя в зависимости от роли
+                        window.location.href = data.redirect; // Перенаправляем на URL, который возвращает сервер
+                    })
+                    .fail(function(jqXHR) {
+                        // Если произошла ошибка, показываем сообщение
+                        $('#error-message').text(jqXHR.responseJSON.message || 'Неверный логин или пароль.').removeClass('d-none');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

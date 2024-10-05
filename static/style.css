@@ -1,0 +1,91 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4; /* Светлый фон */
+    color: #333; /* Темный текст */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.dark-mode {
+    background-color: #1e1e1e; /* Темный фон */
+    color: #f4f4f4; /* Светлый текст */
+}
+
+.container {
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    position: relative;
+}
+
+h1 {
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="submit"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+input[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.toggle-button {
+    width: 30px;
+    height: 30px;
+    background-color: #007bff; /* Цвет для светлого режима */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dark-mode .toggle-button {
+    background-color: #ffcc00; /* Цвет для темного режима */
+}
+
+/* Стиль для таблицы */
+.table {
+    width: 100%; /* Таблица занимает 100% ширины контейнера */
+    border-collapse: collapse; /* Убираем пробелы между ячейками */
+}
+
+.table th, .table td {
+    padding: 10px; /* Добавляем отступы для ячеек */
+    text-align: left; /* Выравнивание текста в ячейках */
+    border: 1px solid #ccc; /* Добавляем рамки к ячейкам */
+}
+
+/* Стиль для столбца "Источники" */
+.table th:nth-child(3), .table td:nth-child(3) {
+    max-width: 200px; /* Максимальная ширина столбца */
+    overflow: hidden; /* Скрываем переполнение */
+    text-overflow: ellipsis; /* Для обрезки текста с многоточием */
+    white-space: nowrap; /* Чтобы текст не переносился */
+}

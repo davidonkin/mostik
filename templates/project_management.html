@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление проектами</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            display: flex;
+        }
+        .sidebar {
+            min-width: 200px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #dee2e6;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        .form-check {
+            display: flex;
+            align-items: center;
+        }
+        .form-check-input {
+            appearance: none;
+            width: 50px;
+            height: 25px;
+            background: #ccc;
+            border-radius: 15px;
+            position: relative;
+            outline: none;
+            transition: background 0.2s;
+        }
+        .form-check-input:checked {
+            background: #4CAF50;
+        }
+        .form-check-input:checked:before {
+            transform: translateX(25px);
+        }
+        .form-check-input:before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+        .truncate-text {
+            max-width: 250px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h5>Меню</h5>
+        <button class="btn btn-danger" id="logoutBtn">Выйти</button>
+    </div>
+    <div class="main-content">
+        <h1>Управление проектами</h1>
+        <button class="btn btn-primary" id="createProjectBtn" data-toggle="modal" data-target="#createProjectModal">Создать проект</button>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>I/O</th>
+                    <th>Название</th>
+                    <th>Источники</th>
+                    <th>Дневной лимит</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody id="projectTable">
+                {% for project in projects %}
+                <tr data-id="{{ project.id }}">
+                    <td>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input status-toggle" type="checkbox" id="status-{{ project.id }}" {% if project.status %}checked{% endif %}>
+                        </div>
+                    </td>
+                    <td>{{ project.name }}</td>
+                    <td>
+                        <span class="truncate-text" title="{{ project.sources.split(',') | map('trim') | join(', ') }}">
+                            {{ project.sources.split(',') | map('trim') | join(', ') }}
+                        </span>
+                    </td>
+                    <td>{{ project.daily_limit }}</td>
+                    <td>
+                        <button class="btn btn-info edit-btn">Изменить</button>
+                        <button class="btn btn-success copy-btn" data-id="{{ project.id }}">Копировать</button>
+                        <button class="btn btn-danger delete-btn" data-id="{{ project.id }}">Удалить</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Всплывающее окно для создания проекта -->
+    <div class="modal" id="createProjectModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Создание проекта</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="createProjectForm">
+                        <div class="form-group">
+                            <label for="projectName">Название проекта</label>
+                            <input type="text" class="form-control" id="projectName" maxlength="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="projectSources">Источники (через запятую)</label>
+                            <input type="text" class="form-control" id="projectSources" placeholder="site.com, 79999999999" required>
+                            <small class="form-text text-muted">Введите не менее 5 уникальных источников, разделенных запятыми.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="dailyLimit">Дневной лимит</label>
+                            <input type="number" class="form-control" id="dailyLimit" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Создать</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Всплывающее окно для редактирования проекта -->
+    <div class="modal" id="editProjectModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Изменение проекта</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProjectForm">
+                        <input type="hidden" id="editProjectId">
+                        <div class="form-group">
+                            <label for="editProjectName">Название проекта</label>
+                            <input type="text" class="form-control" id="editProjectName" maxlength="30" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editProjectSources">Источники (через запятую)</label>
+                            <input type="text" class="form-control" id="editProjectSources" placeholder="site.com, 79999999999" required>
+                            <small class="form-text text-muted">Введите не менее 5 уникальных источников, разделенных запятыми.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="editDailyLimit">Дневной лимит</label>
+                            <input type="number" class="form-control" id="editDailyLimit" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Создание проекта
+            $('#createProjectForm').on('submit', function (e) {
+                e.preventDefault();
+                const projectName = $('#projectName').val();
+                const projectSources = $('#projectSources').val().trim();
+                const dailyLimit = $('#dailyLimit').val();
+
+                const sourcesArray = projectSources.split(',').map(s => s.trim());
+                const validationError = validateSources(sourcesArray);
+
+                if (validationError) {
+                    alert(validationError);
+                    return;
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/project_management',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        project_name: projectName,
+                        sources: sourcesArray,
+                        daily_limit: dailyLimit
+                    }),
+                    success: function () {
+                        $('#createProjectModal').modal('hide');
+                        location.reload();
+                    },
+                    error: function () {
+                        alert('Ошибка при создании проекта.');
+                    }
+                });
+            });
+
+            // Редактирование проекта
+            $(document).on('click', '.edit-btn', function () {
+                const row = $(this).closest('tr');
+                const projectId = row.data('id');
+                const projectName = row.children('td:nth-child(2)').text();
+                const projectSources = row.find('.truncate-text').attr('title');
+                const dailyLimit = row.children('td:nth-child(4)').text();
+
+                $('#editProjectId').val(projectId);
+                $('#editProjectName').val(projectName);
+                $('#editProjectSources').val(projectSources);
+                $('#editDailyLimit').val(dailyLimit);
+                $('#editProjectModal').modal('show');
+            });
+
+            $('#editProjectForm').on('submit', function (e) {
+                e.preventDefault();
+                const projectId = $('#editProjectId').val();
+                const projectName = $('#editProjectName').val();
+                const projectSources = $('#editProjectSources').val().trim();
+                const dailyLimit = $('#editDailyLimit').val();
+
+                const sourcesArray = projectSources.split(',').map(s => s.trim());
+                const validationError = validateSources(sourcesArray);
+
+                if (validationError) {
+                    alert(validationError);
+                    return;
+                }
+
+                $.ajax({
+                    type: 'PUT',
+                    url: `/project_management/${projectId}`,
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        project_name: projectName,
+                        sources: sourcesArray,
+                        daily_limit: dailyLimit
+                    }),
+                    success: function () {
+                        $('#editProjectModal').modal('hide');
+                        location.reload();
+                    },
+                    error: function () {
+                        alert('Ошибка при редактировании проекта.');
+                    }
+                });
+            });
+
+            // Остальной JavaScript код остается без изменений
+            $(document).on('click', '.delete-btn', function () {
+                const projectId = $(this).data('id');
+                if (confirm('Вы уверены, что хотите удалить этот проект?')) {
+                    $.ajax({
+                        type: 'DELETE',
+                        url: `/project_management/${projectId}`,
+                        success: function () {
+                            location.reload();
+                        },
+                        error: function () {
+                            alert('Ошибка при удалении проекта.');
+                        }
+                    });
+                }
+            });
+
+            $(document).on('click', '.copy-btn', function () {
+                const projectId = $(this).data('id');
+                $.ajax({
+                    type: 'POST',
+                    url: `/project_management/${projectId}/copy`,
+                    success: function () {
+                        location.reload();
+                    },
+                    error: function () {
+                        alert('Ошибка при копировании проекта.');
+                    }
+                });
+            });
+
+            $(document).on('change', '.status-toggle', function () {
+                const projectId = $(this).closest('tr').data('id');
+                const status = $(this).is(':checked');
+                $.ajax({
+                    type: 'PATCH',
+                    url: `/project_management/${projectId}/status`,
+                    contentType: 'application/json',
+                    data: JSON.stringify({ status: status }),
+                    error: function () {
+                        alert('Ошибка при изменении статуса проекта.');
+                    }
+                });
+            });
+
+            $('#logoutBtn').on('click', function () {
+                window.location.href = '/logout';
+            });
+
+            function validateSources(sources) {
+                const uniqueSources = [...new Set(sources)];
+                if (uniqueSources.length < 5) {
+                    return 'Введите не менее 5 уникальных источников.';
+                }
+                return null;
+            }
+        });
+    </script>
+</body>
+</html>
